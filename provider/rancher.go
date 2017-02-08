@@ -68,6 +68,13 @@ func (provider *Rancher) getEntryPoints(service rancherData) []string {
 	return []string{}
 }
 
+func (provider *Rancher) getBasicAuth(service rancherData) []string {
+	if entryPoints, err := getServiceLabel(service, "traefik.frontend.auth.basic"); err == nil {
+		return strings.Split(entryPoints, ",")
+	}
+	return []string{}
+}
+
 func (provider *Rancher) getFrontendRule(service rancherData) string {
 	if label, err := getServiceLabel(service, "traefik.frontend.rule"); err == nil {
 		return label
@@ -384,6 +391,7 @@ func (provider *Rancher) loadRancherConfig(services []rancherData) *types.Config
 		"getPassHostHeader":           provider.getPassHostHeader,
 		"getPriority":                 provider.getPriority,
 		"getEntryPoints":              provider.getEntryPoints,
+		"getBasicAuth":                provider.getBasicAuth,
 		"getFrontendRule":             provider.getFrontendRule,
 		"hasCircuitBreakerLabel":      provider.hasCircuitBreakerLabel,
 		"getCircuitBreakerExpression": provider.getCircuitBreakerExpression,

@@ -31,6 +31,9 @@
   backend = "backend-{{getBackend $container}}"
   passHostHeader = {{getPassHostHeader $container}}
   priority = {{getPriority $container}}
+  basicAuth = [{{range getBasicAuth $container}}
+    "{{.}}",
+  {{end}}]
   entryPoints = [{{range getEntryPoints $container}}
     "{{.}}",
   {{end}}]

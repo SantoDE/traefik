@@ -246,6 +246,7 @@ func (provider *Docker) loadDockerConfig(containersInspected []dockerData) *type
 		"getDomain":                   provider.getDomain,
 		"getProtocol":                 provider.getProtocol,
 		"getPassHostHeader":           provider.getPassHostHeader,
+		"getBasicAuth":                provider.getBasicAuth,
 		"getPriority":                 provider.getPriority,
 		"getEntryPoints":              provider.getEntryPoints,
 		"getFrontendRule":             provider.getFrontendRule,
@@ -500,6 +501,13 @@ func (provider *Docker) getPriority(container dockerData) string {
 func (provider *Docker) getEntryPoints(container dockerData) []string {
 	if entryPoints, err := getLabel(container, "traefik.frontend.entryPoints"); err == nil {
 		return strings.Split(entryPoints, ",")
+	}
+	return []string{}
+}
+
+func (provider *Docker) getBasicAuth(container dockerData) []string {
+	if basicAuth, err := getLabel(container, "traefik.frontend.auth.basic"); err == nil {
+		return strings.Split(basicAuth, ",")
 	}
 	return []string{}
 }

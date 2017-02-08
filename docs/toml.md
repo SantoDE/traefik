@@ -814,6 +814,7 @@ Labels can be used on containers to override default behaviour:
 - `traefik.frontend.passHostHeader=true`: forward client `Host` header to the backend.
 - `traefik.frontend.priority=10`: override default frontend priority
 - `traefik.frontend.entryPoints=http,https`: assign this frontend to entry points `http` and `https`. Overrides `defaultEntryPoints`.
+- `traefik.frontend.auth.basic=test:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/,test2:$apr1$d9hr9HBB$4HxwgUir3HP4EsggP/QNo0`: Set's a Basic Auth for that frontend with the users test:test and test2:test2
 - `traefik.docker.network`: Set the docker network to use for connections to this container
 
 NB: when running inside a container, Træfɪk will need network access through `docker network connect <network> <traefik-container>`
