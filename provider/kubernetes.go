@@ -14,6 +14,7 @@ import (
 	"github.com/containous/traefik/safe"
 	"github.com/containous/traefik/types"
 	"k8s.io/client-go/1.5/pkg/api/v1"
+	"k8s.io/client-go/1.5/pkg/apis/extensions/v1beta1"
 	"k8s.io/client-go/1.5/pkg/util/intstr"
 )
 
@@ -109,6 +110,7 @@ func (provider *Kubernetes) loadIngresses(k8sClient k8s.Client) (*types.Configur
 	}
 	PassHostHeader := provider.getPassHostHeader()
 	for _, i := range ingresses {
+		BasicAuth := getBasicAuth(i)
 		for _, r := range i.Spec.Rules {
 			if r.HTTP == nil {
 				log.Warnf("Error in ingress: HTTP is nil")
@@ -127,6 +129,7 @@ func (provider *Kubernetes) loadIngresses(k8sClient k8s.Client) (*types.Configur
 				if _, exists := templateObjects.Frontends[r.Host+pa.Path]; !exists {
 					templateObjects.Frontends[r.Host+pa.Path] = &types.Frontend{
 						Backend:        r.Host + pa.Path,
+						BasicAuth:      BasicAuth,
 						PassHostHeader: PassHostHeader,
 						Routes:         make(map[string]types.Route),
 						Priority:       len(pa.Path),
@@ -250,6 +253,15 @@ func equalPorts(servicePort v1.ServicePort, ingressPort intstr.IntOrString) bool
 		return true
 	}
 	return false
+}
+
+func getBasicAuth(ingress *v1beta1.Ingress) []string {
+	for key, value := range ingress.Annotations {
+		if key == "traefik.frontend.auth.basic" {
+			return strings.Split(value, ",")
+		}
+	}
+	return []string{}
 }
 
 func (provider *Kubernetes) getPassHostHeader() bool {
