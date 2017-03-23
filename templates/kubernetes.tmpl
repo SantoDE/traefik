@@ -19,6 +19,9 @@
   [frontends."{{$frontendName}}"]
   backend = "{{$frontend.Backend}}"
   priority = {{$frontend.Priority}}
+  basicAuth = [{{range $frontend.BasicAuth}}
+    "{{.}}",
+  {{end}}]
   passHostHeader = {{$frontend.PassHostHeader}}
     {{range $routeName, $route := $frontend.Routes}}
     [frontends."{{$frontendName}}".routes."{{$routeName}}"]

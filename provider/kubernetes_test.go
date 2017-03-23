@@ -246,6 +246,7 @@ func TestLoadIngresses(t *testing.T) {
 		Frontends: map[string]*types.Frontend{
 			"foo/bar": {
 				Backend:        "foo/bar",
+				BasicAuth:      []string{},
 				PassHostHeader: true,
 				Priority:       len("/bar"),
 				Routes: map[string]types.Route{
@@ -259,6 +260,7 @@ func TestLoadIngresses(t *testing.T) {
 			},
 			"bar": {
 				Backend:        "bar",
+				BasicAuth:      []string{},
 				PassHostHeader: true,
 				Routes: map[string]types.Route{
 					"bar": {
@@ -437,6 +439,7 @@ func TestRuleType(t *testing.T) {
 	expected := map[string]*types.Frontend{
 		"foo1/bar1": {
 			Backend:  "foo1/bar1",
+			BasicAuth: []string{},
 			Priority: len("/bar1"),
 			Routes: map[string]types.Route{
 				"/bar1": {
@@ -449,6 +452,7 @@ func TestRuleType(t *testing.T) {
 		},
 		"foo1/bar2": {
 			Backend:  "foo1/bar2",
+			BasicAuth: []string{},
 			Priority: len("/bar2"),
 			Routes: map[string]types.Route{
 				"/bar2": {
@@ -461,6 +465,7 @@ func TestRuleType(t *testing.T) {
 		},
 		"foo2/bar1": {
 			Backend:  "foo2/bar1",
+			BasicAuth: []string{},
 			Priority: len("/bar1"),
 			Routes: map[string]types.Route{
 				"/bar1": {
@@ -473,6 +478,7 @@ func TestRuleType(t *testing.T) {
 		},
 		"foo2/bar2": {
 			Backend:  "foo2/bar2",
+			BasicAuth: []string{},
 			Priority: len("/bar2"),
 			Routes: map[string]types.Route{
 				"/bar2": {
@@ -485,6 +491,7 @@ func TestRuleType(t *testing.T) {
 		},
 		"foo1/bar3": {
 			Backend:  "foo1/bar3",
+			BasicAuth: []string{},
 			Priority: len("/bar3"),
 			Routes: map[string]types.Route{
 				"/bar3": {
@@ -579,6 +586,104 @@ func TestGetPassHostHeader(t *testing.T) {
 		Frontends: map[string]*types.Frontend{
 			"foo/bar": {
 				Backend:  "foo/bar",
+				BasicAuth: []string{},
+				Priority: len("/bar"),
+				Routes: map[string]types.Route{
+					"/bar": {
+						Rule: "PathPrefix:/bar",
+					},
+					"foo": {
+						Rule: "Host:foo",
+					},
+				},
+			},
+		},
+	}
+	actualJSON, _ := json.Marshal(actual)
+	expectedJSON, _ := json.Marshal(expected)
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("expected %+v, got %+v", string(expectedJSON), string(actualJSON))
+	}
+}
+
+func TestBasicAuth(t *testing.T) {
+	ingresses := []*v1beta1.Ingress{{
+		ObjectMeta: v1.ObjectMeta{
+			Namespace: "awesome",
+			Annotations: map[string]string{"traefik.frontend.auth.basic": "test:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/,test2:$apr1$d9hr9HBB$4HxwgUir3HP4EsggP/QNo0"},
+		},
+		Spec: v1beta1.IngressSpec{
+			Rules: []v1beta1.IngressRule{
+				{
+					Host: "foo",
+					IngressRuleValue: v1beta1.IngressRuleValue{
+						HTTP: &v1beta1.HTTPIngressRuleValue{
+							Paths: []v1beta1.HTTPIngressPath{
+								{
+									Path: "/bar",
+									Backend: v1beta1.IngressBackend{
+										ServiceName: "service1",
+										ServicePort: intstr.FromInt(801),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}}
+	services := []*v1.Service{
+		{
+			ObjectMeta: v1.ObjectMeta{
+				Name:      "service1",
+				Namespace: "awesome",
+				UID:       "1",
+			},
+			Spec: v1.ServiceSpec{
+				ClusterIP: "10.0.0.1",
+				Ports: []v1.ServicePort{
+					{
+						Name: "http",
+						Port: 801,
+					},
+				},
+			},
+		},
+	}
+	watchChan := make(chan interface{})
+	client := clientMock{
+		ingresses: ingresses,
+		services:  services,
+		watchChan: watchChan,
+	}
+	provider := Kubernetes{DisablePassHostHeaders: true}
+	actual, err := provider.loadIngresses(client)
+	if err != nil {
+		t.Fatalf("error %+v", err)
+	}
+
+	expected := &types.Configuration{
+		Backends: map[string]*types.Backend{
+			"foo/bar": {
+				Servers: map[string]types.Server{
+					"1": {
+						URL:    "http://10.0.0.1:801",
+						Weight: 1,
+					},
+				},
+				CircuitBreaker: nil,
+				LoadBalancer: &types.LoadBalancer{
+					Sticky: false,
+					Method: "wrr",
+				},
+			},
+		},
+		Frontends: map[string]*types.Frontend{
+			"foo/bar": {
+				Backend:  "foo/bar",
+				BasicAuth: []string{"test:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/", "test2:$apr1$d9hr9HBB$4HxwgUir3HP4EsggP/QNo0"},
 				Priority: len("/bar"),
 				Routes: map[string]types.Route{
 					"/bar": {
@@ -691,6 +796,7 @@ func TestOnlyReferencesServicesFromOwnNamespace(t *testing.T) {
 		Frontends: map[string]*types.Frontend{
 			"foo": {
 				Backend:        "foo",
+				BasicAuth:      []string{},
 				PassHostHeader: true,
 				Routes: map[string]types.Route{
 					"foo": {
@@ -897,6 +1003,7 @@ func TestLoadNamespacedIngresses(t *testing.T) {
 		Frontends: map[string]*types.Frontend{
 			"foo/bar": {
 				Backend:        "foo/bar",
+				BasicAuth:      []string{},
 				PassHostHeader: true,
 				Priority:       len("/bar"),
 				Routes: map[string]types.Route{
@@ -910,6 +1017,7 @@ func TestLoadNamespacedIngresses(t *testing.T) {
 			},
 			"bar": {
 				Backend:        "bar",
+				BasicAuth:      []string{},
 				PassHostHeader: true,
 				Routes: map[string]types.Route{
 					"bar": {
@@ -1154,6 +1262,7 @@ func TestLoadMultipleNamespacedIngresses(t *testing.T) {
 		Frontends: map[string]*types.Frontend{
 			"foo/bar": {
 				Backend:        "foo/bar",
+				BasicAuth:      []string{},
 				PassHostHeader: true,
 				Priority:       len("/bar"),
 				Routes: map[string]types.Route{
@@ -1167,6 +1276,7 @@ func TestLoadMultipleNamespacedIngresses(t *testing.T) {
 			},
 			"bar": {
 				Backend:        "bar",
+				BasicAuth:      []string{},
 				PassHostHeader: true,
 				Routes: map[string]types.Route{
 					"bar": {
@@ -1176,6 +1286,7 @@ func TestLoadMultipleNamespacedIngresses(t *testing.T) {
 			},
 			"awesome/quix": {
 				Backend:        "awesome/quix",
+				BasicAuth:      []string{},
 				PassHostHeader: true,
 				Priority:       len("/quix"),
 				Routes: map[string]types.Route{
@@ -1271,6 +1382,7 @@ func TestHostlessIngress(t *testing.T) {
 		Frontends: map[string]*types.Frontend{
 			"/bar": {
 				Backend:  "/bar",
+				BasicAuth: []string{},
 				Priority: len("/bar"),
 				Routes: map[string]types.Route{
 					"/bar": {
@@ -1494,6 +1606,7 @@ func TestServiceAnnotations(t *testing.T) {
 		Frontends: map[string]*types.Frontend{
 			"foo/bar": {
 				Backend:        "foo/bar",
+				BasicAuth:      []string{},
 				PassHostHeader: true,
 				Priority:       len("/bar"),
 				Routes: map[string]types.Route{
@@ -1507,6 +1620,7 @@ func TestServiceAnnotations(t *testing.T) {
 			},
 			"bar": {
 				Backend:        "bar",
+				BasicAuth:      []string{},
 				PassHostHeader: true,
 				Routes: map[string]types.Route{
 					"bar": {
