@@ -39,6 +39,7 @@ type Provider struct {
 	Namespaces             k8s.Namespaces `description:"Kubernetes namespaces" export:"true"`
 	LabelSelector          string         `description:"Kubernetes label selector to use" export:"true"`
 	IngressClass           string         `description:"Value of kubernetes.io/ingress.class annotation to watch for" export:"true"`
+	PublishedService       string         `description:"Published Kubernetes Service to copy status from"`
 	lastConfiguration      safe.Safe
 }
 
@@ -333,6 +334,8 @@ func (p *Provider) loadConfigurationFromIngresses(ctx context.Context, client Cl
 					PassHostHeader: true,
 				},
 			}
+
+			//@TODO: update endpoint fields for external-dns
 		}
 	}
 
@@ -441,4 +444,22 @@ func getCertificateBlocks(secret *corev1.Secret, namespace, secretName string) (
 	}
 
 	return cert, key, nil
+}
+
+func (p *Provider) updateEndpoint(route *v1alpha1.IngressRoute, k8sClient Client) error {
+	serviceInfo := strings.Split(p.PublishedService, "/")
+	if len(serviceInfo) != 2 {
+		return fmt.Errorf("invalid publishedService format (expected 'namespace/service' format): %s", p.PublishedService)
+	}
+	serviceNamespace, serviceName := serviceInfo[0], serviceInfo[1]
+
+	serviceToCopy, _, err := k8sClient.GetService(serviceNamespace, serviceName)
+
+	if err != nil {
+
+	}
+
+	k8sClient.UpdateIngressrouteEndpoint("somenamespace", "someService", serviceToCopy.Status.LoadBalancer.Ingress[0].IP, serviceToCopy.Status.LoadBalancer.Ingress[0].Hostname)
+
+	return nil
 }

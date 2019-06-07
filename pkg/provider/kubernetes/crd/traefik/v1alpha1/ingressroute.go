@@ -1,14 +1,16 @@
 package v1alpha1
 
 import (
+	externaldns "github.com/kubernetes-incubator/external-dns/endpoint"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // IngressRouteSpec is a specification for a IngressRouteSpec resource.
 type IngressRouteSpec struct {
-	Routes      []Route  `json:"routes"`
-	EntryPoints []string `json:"entryPoints"`
-	TLS         *TLS     `json:"tls,omitempty"`
+	Routes      []Route                  `json:"routes"`
+	EntryPoints []string                 `json:"entryPoints"`
+	TLS         *TLS                     `json:"tls,omitempty"`
+	Endpoint    *externaldns.DNSEndpoint `json:"endpoint,omitempty"`
 }
 
 // Route contains the set of routes.
