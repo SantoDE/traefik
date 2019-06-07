@@ -1023,6 +1023,14 @@
   revision = "b84e30acd515aadc4b783ad4ff83aff3299bdfe0"
 
 [[projects]]
+  digest = "1:82f6c1c01544ea84036fc577ecf2aab122ddf123a029ab64e801f6c2bcb93622"
+  name = "github.com/kubernetes-incubator/external-dns"
+  packages = ["endpoint"]
+  pruneopts = "NUT"
+  revision = "aa035583c55eaaf1f1be109c21b3f3e6954b7fac"
+  version = "v0.5.14"
+
+[[projects]]
   branch = "master"
   digest = "1:5a96e1f04259484b3dd183ca95d1e7bff768b1bab36c530e308a8d56243b50c7"
   name = "github.com/libkermit/compose"
@@ -2274,6 +2282,7 @@
     "github.com/hashicorp/go-version",
     "github.com/influxdata/influxdb/client/v2",
     "github.com/instana/go-sensor",
+    "github.com/kubernetes-incubator/external-dns/endpoint",
     "github.com/libkermit/compose/check",
     "github.com/libkermit/docker",
     "github.com/libkermit/docker-check",
