@@ -10,6 +10,8 @@ import (
 	"github.com/containous/traefik/pkg/provider/kubernetes/crd/generated/clientset/versioned"
 	"github.com/containous/traefik/pkg/provider/kubernetes/crd/generated/informers/externalversions"
 	"github.com/containous/traefik/pkg/provider/kubernetes/crd/traefik/v1alpha1"
+	"github.com/containous/traefik/pkg/provider/kubernetes/k8s"
+	externaldns "github.com/kubernetes-incubator/external-dns/endpoint"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	kubeerror "k8s.io/apimachinery/pkg/api/errors"
@@ -55,7 +57,7 @@ type Client interface {
 	GetService(namespace, name string) (*corev1.Service, bool, error)
 	GetSecret(namespace, name string) (*corev1.Secret, bool, error)
 	GetEndpoints(namespace, name string) (*corev1.Endpoints, bool, error)
-	UpdateIngressStatus(namespace, name, ip, hostname string) error
+	UpdateIngressrouteEndpoint(namespace, name, ip, hostname string) error
 }
 
 // TODO: add tests for the clientWrapper (and its methods) itself.
@@ -272,31 +274,36 @@ func (c *clientWrapper) GetIngresses() []*extensionsv1beta1.Ingress {
 }
 
 // UpdateIngressStatus updates an Ingress with a provided status.
-func (c *clientWrapper) UpdateIngressStatus(namespace, name, ip, hostname string) error {
+func (c *clientWrapper) UpdateIngressrouteEndpoint(namespace, name, ip, hostname string) error {
 	if !c.isWatchedNamespace(namespace) {
 		return fmt.Errorf("failed to get ingress %s/%s: namespace is not within watched namespaces", namespace, name)
 	}
-
-	ing, err := c.factoriesKube[c.lookupNamespace(namespace)].Extensions().V1beta1().Ingresses().Lister().Ingresses(namespace).Get(name)
+	ing, err := c.factoriesCrd[c.lookupNamespace(namespace)].Traefik().V1alpha1().IngressRoutes().Lister().IngressRoutes(namespace).Get(name)
 	if err != nil {
 		return fmt.Errorf("failed to get ingress %s/%s: %v", namespace, name, err)
 	}
 
-	if len(ing.Status.LoadBalancer.Ingress) > 0 {
-		if ing.Status.LoadBalancer.Ingress[0].Hostname == hostname && ing.Status.LoadBalancer.Ingress[0].IP == ip {
+	//if len(ing.Spec.Endpoint.Spec.Endpoints) > 0 {
+	if len(ing.Spec.Endpoint.Spec.Endpoints) > 0 {
+		if ing.Spec.Endpoint.Spec.Endpoints[0].DNSName == hostname && ing.Spec.Endpoint.Spec.Endpoints[0].Targets[0] == ip {
 			// If status is already set, skip update
-			log.Debugf("Skipping status update on ingress %s/%s", ing.Namespace, ing.Name)
+			log.Debugf("Skipping update on ingress route %s/%s", ing.Namespace, ing.Name)
 			return nil
 		}
 	}
-	ingCopy := ing.DeepCopy()
-	ingCopy.Status = extensionsv1beta1.IngressStatus{LoadBalancer: corev1.LoadBalancerStatus{Ingress: []corev1.LoadBalancerIngress{{IP: ip, Hostname: hostname}}}}
 
-	_, err = c.csKube.ExtensionsV1beta1().Ingresses(ingCopy.Namespace).UpdateStatus(ingCopy)
-	if err != nil {
-		return fmt.Errorf("failed to update ingress status %s/%s: %v", namespace, name, err)
+	ingCopy := ing.DeepCopy()
+	ingCopy.Spec.Endpoint = &externaldns.DNSEndpoint{
+		Spec: externaldns.DNSEndpointSpec{
+			Endpoints: []*externaldns.Endpoint{
+				{DNSName: hostname, Targets: []string{ip}}},
+		},
 	}
-	log.Infof("Updated status on ingress %s/%s", namespace, name)
+	_, err = c.csCrd.TraefikV1alpha1().IngressRoutes(ingCopy.Namespace).Update(ingCopy)
+	if err != nil {
+		return fmt.Errorf("failed to update ingress route status %s/%s: %v", namespace, name, err)
+	}
+	log.Infof("Updated ingress route %s/%s", namespace, name)
 	return nil
 }
 

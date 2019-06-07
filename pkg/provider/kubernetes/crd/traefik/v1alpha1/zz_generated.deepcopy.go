@@ -29,6 +29,7 @@ THE SOFTWARE.
 package v1alpha1
 
 import (
+	endpoint "github.com/kubernetes-incubator/external-dns/endpoint"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -154,6 +155,11 @@ func (in *IngressRouteSpec) DeepCopyInto(out *IngressRouteSpec) {
 	if in.TLS != nil {
 		in, out := &in.TLS, &out.TLS
 		*out = new(TLS)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.Endpoint != nil {
+		in, out := &in.Endpoint, &out.Endpoint
+		*out = new(endpoint.DNSEndpoint)
 		(*in).DeepCopyInto(*out)
 	}
 	return

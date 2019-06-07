@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/containous/traefik/pkg/provider/kubernetes/k8s"
 	"os"
 	"reflect"
 	"sort"
@@ -31,13 +32,14 @@ const (
 
 // Provider holds configurations of the provider.
 type Provider struct {
-	Endpoint               string   `description:"Kubernetes server endpoint (required for external cluster client)." json:"endpoint,omitempty" toml:"endpoint,omitempty" yaml:"endpoint,omitempty"`
-	Token                  string   `description:"Kubernetes bearer token (not needed for in-cluster client)." json:"token,omitempty" toml:"token,omitempty" yaml:"token,omitempty"`
-	CertAuthFilePath       string   `description:"Kubernetes certificate authority file path (not needed for in-cluster client)." json:"certAuthFilePath,omitempty" toml:"certAuthFilePath,omitempty" yaml:"certAuthFilePath,omitempty"`
-	DisablePassHostHeaders bool     `description:"Kubernetes disable PassHost Headers." json:"disablePassHostHeaders,omitempty" toml:"disablePassHostHeaders,omitempty" yaml:"disablePassHostHeaders,omitempty" export:"true"`
-	Namespaces             []string `description:"Kubernetes namespaces." json:"namespaces,omitempty" toml:"namespaces,omitempty" yaml:"namespaces,omitempty" export:"true"`
-	LabelSelector          string   `description:"Kubernetes label selector to use." json:"labelSelector,omitempty" toml:"labelSelector,omitempty" yaml:"labelSelector,omitempty" export:"true"`
-	IngressClass           string   `description:"Value of kubernetes.io/ingress.class annotation to watch for." json:"ingressClass,omitempty" toml:"ingressClass,omitempty" yaml:"ingressClass,omitempty" export:"true"`
+	Endpoint               string         `description:"Kubernetes server endpoint (required for external cluster client)"`
+	Token                  string         `description:"Kubernetes bearer token (not needed for in-cluster client)"`
+	CertAuthFilePath       string         `description:"Kubernetes certificate authority file path (not needed for in-cluster client)"`
+	DisablePassHostHeaders bool           `description:"Kubernetes disable PassHost Headers" export:"true"`
+	Namespaces             k8s.Namespaces `description:"Kubernetes namespaces" export:"true"`
+	LabelSelector          string         `description:"Kubernetes label selector to use" export:"true"`
+	IngressClass           string         `description:"Value of kubernetes.io/ingress.class annotation to watch for" export:"true"`
+	PublishedService       string         `description:"Published Kubernetes Service to copy status from"`
 	lastConfiguration      safe.Safe
 }
 
@@ -459,6 +461,8 @@ func (p *Provider) loadIngressRouteConfiguration(ctx context.Context, client Cli
 					PassHostHeader: true,
 				},
 			}
+
+			//@TODO: update endpoint fields for external-dns
 		}
 	}
 
@@ -723,6 +727,7 @@ func getCertificateBlocks(secret *corev1.Secret, namespace, secretName string) (
 	return cert, key, nil
 }
 
+<<<<<<< HEAD
 func getCABlocks(secret *corev1.Secret, namespace, secretName string) (string, error) {
 	tlsCrtData, tlsCrtExists := secret.Data["tls.ca"]
 	if !tlsCrtExists {
@@ -737,4 +742,22 @@ func getCABlocks(secret *corev1.Secret, namespace, secretName string) (string, e
 	}
 
 	return cert, nil
+=======
+func (p *Provider) updateEndpoint(route *v1alpha1.IngressRoute, k8sClient Client) error {
+	serviceInfo := strings.Split(p.PublishedService, "/")
+	if len(serviceInfo) != 2 {
+		return fmt.Errorf("invalid publishedService format (expected 'namespace/service' format): %s", p.PublishedService)
+	}
+	serviceNamespace, serviceName := serviceInfo[0], serviceInfo[1]
+
+	serviceToCopy, _, err := k8sClient.GetService(serviceNamespace, serviceName)
+
+	if err != nil {
+
+	}
+
+	k8sClient.UpdateIngressrouteEndpoint("somenamespace", "someService", serviceToCopy.Status.LoadBalancer.Ingress[0].IP, serviceToCopy.Status.LoadBalancer.Ingress[0].Hostname)
+
+	return nil
+>>>>>>> first try
 }
