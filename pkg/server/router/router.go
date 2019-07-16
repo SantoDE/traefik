@@ -159,5 +159,6 @@ func (m *Manager) buildHTTPHandler(ctx context.Context, router *runtime.RouterIn
 		return tracing.NewForwarder(ctx, routerName, router.Service, next), nil
 	}
 
+	//@TODO: MAYBE ADD HERE?
 	return alice.New().Extend(*mHandler).Append(tHandler).Then(sHandler)
 }

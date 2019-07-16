@@ -13,6 +13,7 @@ func mergeConfiguration(configurations dynamic.Configurations) dynamic.Configura
 			Routers:     make(map[string]*dynamic.Router),
 			Middlewares: make(map[string]*dynamic.Middleware),
 			Services:    make(map[string]*dynamic.Service),
+			Modifiers:   make(map[string]*dynamic.Modifier),
 		},
 		TCP: &dynamic.TCPConfiguration{
 			Routers:  make(map[string]*dynamic.TCPRouter),
@@ -35,6 +36,9 @@ func mergeConfiguration(configurations dynamic.Configurations) dynamic.Configura
 			}
 			for serviceName, service := range configuration.HTTP.Services {
 				conf.HTTP.Services[internal.MakeQualifiedName(provider, serviceName)] = service
+			}
+			for modifierName, modifier := range configuration.HTTP.Modifiers {
+				conf.HTTP.Modifiers[internal.MakeQualifiedName(provider, modifierName)] = modifier
 			}
 		}
 

@@ -9,6 +9,7 @@ type HTTPConfiguration struct {
 	Routers     map[string]*Router     `json:"routers,omitempty" toml:"routers,omitempty" yaml:"routers,omitempty"`
 	Middlewares map[string]*Middleware `json:"middlewares,omitempty" toml:"middlewares,omitempty" yaml:"middlewares,omitempty"`
 	Services    map[string]*Service    `json:"services,omitempty" toml:"services,omitempty" yaml:"services,omitempty"`
+	Modifiers   map[string]*Modifier   `json:"modifiers,omitempty" toml:"modifiers,omitempty" yaml:"modifiers,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true
@@ -46,6 +47,12 @@ type LoadBalancerService struct {
 	HealthCheck        *HealthCheck        `json:"healthCheck,omitempty" toml:"healthCheck,omitempty" yaml:"healthCheck,omitempty"`
 	PassHostHeader     bool                `json:"passHostHeader" toml:"passHostHeader" yaml:"passHostHeader"`
 	ResponseForwarding *ResponseForwarding `json:"responseForwarding,omitempty" toml:"responseForwarding,omitempty" yaml:"responseForwarding,omitempty"`
+}
+
+// LoadBalancerService holds the LoadBalancerService configuration.
+type Modifier struct {
+	Rule        string           `json:"rule,omitempty" toml:"rule,omitempty" yaml:"rule,omitempty"`
+	Middlewares []string         `json:"middlewares,omitempty" toml:"middlewares,omitempty" yaml:"middlewares,omitempty"`
 }
 
 // Mergeable tells if the given service is mergeable.

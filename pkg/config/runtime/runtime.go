@@ -22,6 +22,7 @@ type Configuration struct {
 	Routers     map[string]*RouterInfo     `json:"routers,omitempty"`
 	Middlewares map[string]*MiddlewareInfo `json:"middlewares,omitempty"`
 	Services    map[string]*ServiceInfo    `json:"services,omitempty"`
+	Modifier    map[string]*ModifierInfo   `json:"modifiers,omitempty"`
 	TCPRouters  map[string]*TCPRouterInfo  `json:"tcpRouters,omitempty"`
 	TCPServices map[string]*TCPServiceInfo `json:"tcpServices,omitempty"`
 }
@@ -58,6 +59,15 @@ func NewConfig(conf dynamic.Configuration) *Configuration {
 				runtimeConfig.Middlewares[k] = &MiddlewareInfo{Middleware: v}
 			}
 		}
+
+		modifiers := conf.HTTP.Modifiers
+		if len(modifiers) > 0 {
+			runtimeConfig.Modifier = make(map[string]*ModifierInfo, len(modifiers))
+			for k, v := range modifiers {
+				runtimeConfig.Modifier[k] = &ModifierInfo{Modifier: v}
+			}
+		}
+
 	}
 
 	if conf.TCP != nil {
@@ -323,7 +333,26 @@ func (s *ServiceInfo) AddError(err error, critical bool) {
 	}
 }
 
-// UpdateServerStatus sets the status of the server in the ServiceInfo.
+// +k8s:deepcopy-gen=true
+
+// LoadBalancerService holds the LoadBalancerService configuration.
+// ServiceInfo holds information about a currently running service
+type ModifierInfo struct {
+	*dynamic.Modifier // dynamic configuration
+	// Err contains all the errors that occurred during service creation.
+	Err []string `json:"error,omitempty"`
+	// Status reports whether the service is disabled, in a warning state, or all good (enabled).
+	// If not in "enabled" state, the reason for it should be in the list of Err.
+	// It is the caller's responsibility to set the initial status.
+	Status string   `json:"status,omitempty"`
+	UsedBy []string `json:"usedBy,omitempty"` // list of routers using that service
+
+	serverStatusMu sync.RWMutex
+	serverStatus   map[string]string // keyed by server URL
+}
+
+
+// UpdateStatus sets the status of the server in the ServiceInfo.
 // It is the responsibility of the caller to check that s is not nil.
 func (s *ServiceInfo) UpdateServerStatus(server string, status string) {
 	s.serverStatusMu.Lock()
