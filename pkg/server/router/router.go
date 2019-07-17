@@ -61,7 +61,9 @@ func (m *Manager) BuildHandlers(rootCtx context.Context, entryPoints []string, t
 		entryPointName := entryPointName
 		ctx := log.With(rootCtx, log.Str(log.EntryPointName, entryPointName))
 
-		handler, err := m.buildEntryPointHandler(ctx, routers)
+		modifiersChain := m.buildModifierHandler(ctx)
+
+		handler, err := m.buildEntryPointHandler(ctx, routers, modifiersChain)
 		if err != nil {
 			log.FromContext(ctx).Error(err)
 			continue
@@ -83,7 +85,7 @@ func (m *Manager) BuildHandlers(rootCtx context.Context, entryPoints []string, t
 	return entryPointHandlers
 }
 
-func (m *Manager) buildEntryPointHandler(ctx context.Context, configs map[string]*runtime.RouterInfo) (http.Handler, error) {
+func (m *Manager) buildEntryPointHandler(ctx context.Context, configs map[string]*runtime.RouterInfo, modifiers alice.Chain) (http.Handler, error) {
 	router, err := rules.NewRouter()
 	if err != nil {
 		return nil, err
@@ -106,6 +108,7 @@ func (m *Manager) buildEntryPointHandler(ctx context.Context, configs map[string
 			logger.Error(err)
 			continue
 		}
+
 	}
 
 	router.SortRoutes()
@@ -115,7 +118,7 @@ func (m *Manager) buildEntryPointHandler(ctx context.Context, configs map[string
 		return recovery.New(ctx, next, recoveryMiddlewareName)
 	})
 
-	return chain.Then(router)
+	return chain.Extend(modifiers).Then(router)
 }
 
 func (m *Manager) buildRouterHandler(ctx context.Context, routerName string, routerConfig *runtime.RouterInfo) (http.Handler, error) {
@@ -159,6 +162,17 @@ func (m *Manager) buildHTTPHandler(ctx context.Context, router *runtime.RouterIn
 		return tracing.NewForwarder(ctx, routerName, router.Service, next), nil
 	}
 
-	//@TODO: MAYBE ADD HERE?
 	return alice.New().Extend(*mHandler).Append(tHandler).Then(sHandler)
+}
+
+func (m *Manager) buildModifierHandler(ctx context.Context) alice.Chain {
+
+	chain := alice.New()
+
+	for _, modifierConfig := range m.conf.Modifiers {
+		mwChain := *m.middlewaresBuilder.BuildChain(ctx, modifierConfig.Middlewares)
+		chain = mwChain
+	}
+
+	return chain
 }

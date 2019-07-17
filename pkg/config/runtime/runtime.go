@@ -22,7 +22,7 @@ type Configuration struct {
 	Routers     map[string]*RouterInfo     `json:"routers,omitempty"`
 	Middlewares map[string]*MiddlewareInfo `json:"middlewares,omitempty"`
 	Services    map[string]*ServiceInfo    `json:"services,omitempty"`
-	Modifier    map[string]*ModifierInfo   `json:"modifiers,omitempty"`
+	Modifiers   map[string]*ModifierInfo   `json:"modifiers,omitempty"`
 	TCPRouters  map[string]*TCPRouterInfo  `json:"tcpRouters,omitempty"`
 	TCPServices map[string]*TCPServiceInfo `json:"tcpServices,omitempty"`
 }
@@ -62,9 +62,9 @@ func NewConfig(conf dynamic.Configuration) *Configuration {
 
 		modifiers := conf.HTTP.Modifiers
 		if len(modifiers) > 0 {
-			runtimeConfig.Modifier = make(map[string]*ModifierInfo, len(modifiers))
+			runtimeConfig.Modifiers = make(map[string]*ModifierInfo, len(modifiers))
 			for k, v := range modifiers {
-				runtimeConfig.Modifier[k] = &ModifierInfo{Modifier: v}
+				runtimeConfig.Modifiers[k] = &ModifierInfo{Modifier: v}
 			}
 		}
 
