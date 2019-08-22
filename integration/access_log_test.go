@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/containous/traefik/integration/try"
-	"github.com/containous/traefik/pkg/log"
-	"github.com/containous/traefik/pkg/middlewares/accesslog"
+	"github.com/containous/traefik/v2/integration/try"
+	"github.com/containous/traefik/v2/pkg/log"
+	"github.com/containous/traefik/v2/pkg/middlewares/accesslog"
 	"github.com/go-check/check"
 	checker "github.com/vdemeester/shakers"
 )
@@ -309,6 +309,8 @@ func (s *AccessLogSuite) TestAccessLogFrontendRedirect(c *check.C) {
 }
 
 func (s *AccessLogSuite) TestAccessLogRateLimit(c *check.C) {
+	c.Skip("RateLimit is disable for now")
+
 	ensureWorkingDirectoryIsClean()
 
 	expected := []accessLogValue{

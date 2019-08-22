@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/containous/traefik/pkg/config"
-	"github.com/containous/traefik/pkg/log"
-	"github.com/containous/traefik/pkg/server/internal"
-	"github.com/containous/traefik/pkg/tcp"
+	"github.com/containous/traefik/v2/pkg/config/runtime"
+	"github.com/containous/traefik/v2/pkg/log"
+	"github.com/containous/traefik/v2/pkg/server/internal"
+	"github.com/containous/traefik/v2/pkg/tcp"
 )
 
 // Manager is the TCPHandlers factory
 type Manager struct {
-	configs map[string]*config.TCPServiceInfo
+	configs map[string]*runtime.TCPServiceInfo
 }
 
 // NewManager creates a new manager
-func NewManager(conf *config.RuntimeConfiguration) *Manager {
+func NewManager(conf *runtime.Configuration) *Manager {
 	return &Manager{
 		configs: conf.TCPServices,
 	}
@@ -35,8 +35,9 @@ func (m *Manager) BuildTCP(rootCtx context.Context, serviceName string) (tcp.Han
 		return nil, fmt.Errorf("the service %q does not exist", serviceQualifiedName)
 	}
 	if conf.LoadBalancer == nil {
-		conf.Err = fmt.Errorf("the service %q doesn't have any TCP load balancer", serviceQualifiedName)
-		return nil, conf.Err
+		err := fmt.Errorf("the service %q doesn't have any TCP load balancer", serviceQualifiedName)
+		conf.AddError(err, true)
+		return nil, err
 	}
 
 	logger := log.FromContext(ctx)

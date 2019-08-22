@@ -1,5 +1,72 @@
 # Change Log
 
+## [v1.7.13](https://github.com/containous/traefik/tree/v1.7.13) (2019-08-07)
+[All Commits](https://github.com/containous/traefik/compare/v1.7.12...v1.7.13)
+
+**Bug fixes:**
+- **[acme]** Update lego ([#5166](https://github.com/containous/traefik/pull/5166) by [dabeck](https://github.com/dabeck))
+- **[consulcatalog]** warning should not be a fail status ([#4537](https://github.com/containous/traefik/pull/4537) by [saez0pub](https://github.com/saez0pub))
+- **[docker]** Update docker api version ([#4909](https://github.com/containous/traefik/pull/4909) by [dtomcej](https://github.com/dtomcej))
+- **[dynamodb]** Use dynamodbav tags to override json tags. ([#5002](https://github.com/containous/traefik/pull/5002) by [ldez](https://github.com/ldez))
+- **[healthcheck]** Wrr loadbalancer honors old weight on recovered servers ([#5051](https://github.com/containous/traefik/pull/5051) by [DougWagner](https://github.com/DougWagner))
+- **[k8s]** Check for multiport services on Global Backend Ingress ([#5021](https://github.com/containous/traefik/pull/5021) by [dtomcej](https://github.com/dtomcej))
+- **[logs]** Allows logs to use local time zone instead of UTC ([#4954](https://github.com/containous/traefik/pull/4954) by [dduportal](https://github.com/dduportal))
+- **[middleware]** Clear TLS client headers if TLSMutualAuth is optional ([#4963](https://github.com/containous/traefik/pull/4963) by [stffabi](https://github.com/stffabi))
+- **[tls]** Add missing KeyUsages for default generated certificate ([#5150](https://github.com/containous/traefik/pull/5150) by [dtomcej](https://github.com/dtomcej))
+
+**Documentation:**
+- **[acme]** Fixed doc link for AlibabaCloud ([#5109](https://github.com/containous/traefik/pull/5109) by [ddymko](https://github.com/ddymko))
+- **[docker]** Add example for CLI ([#5131](https://github.com/containous/traefik/pull/5131) by [alvarezbruned](https://github.com/alvarezbruned))
+- **[docker]** Use the latest stable version of traefik in the docs ([#4927](https://github.com/containous/traefik/pull/4927) by [kolaente](https://github.com/kolaente))
+- **[logs]** Update documentation to clarify the default format for logs ([#4953](https://github.com/containous/traefik/pull/4953) by [dduportal](https://github.com/dduportal))
+- **[rancher]** Add remarks about Rancher 2 ([#4999](https://github.com/containous/traefik/pull/4999) by [ldez](https://github.com/ldez))
+- **[tls]** Fixes the TLS Mutual Authentication documentation ([#5085](https://github.com/containous/traefik/pull/5085) by [jbdoumenjou](https://github.com/jbdoumenjou))
+- Format YAML example on user guide ([#5067](https://github.com/containous/traefik/pull/5067) by [gurayyildirim](https://github.com/gurayyildirim))
+- Update Slack support channel references to Discourse community forum ([#5014](https://github.com/containous/traefik/pull/5014) by [dduportal](https://github.com/dduportal))
+- Updating Service Fabric documentation ([#5160](https://github.com/containous/traefik/pull/5160) by [gheibia](https://github.com/gheibia))
+- Improve API / Dashboard wording in documentation ([#4929](https://github.com/containous/traefik/pull/4929) by [dduportal](https://github.com/dduportal))
+
+## [v2.0.0-beta1](https://github.com/containous/traefik/tree/v2.0.0-beta1) (2019-07-19)
+[All Commits](https://github.com/containous/traefik/compare/v2.0.0-alpha8...v2.0.0-beta1)
+
+**Enhancements:**
+- **[acme]** Certificate resolvers. ([#5116](https://github.com/containous/traefik/pull/5116) by [ldez](https://github.com/ldez))
+- **[api,provider]** Enhance REST provider ([#5072](https://github.com/containous/traefik/pull/5072) by [dtomcej](https://github.com/dtomcej))
+- **[api]** Deal with multiple errors and their criticality ([#5070](https://github.com/containous/traefik/pull/5070) by [mpl](https://github.com/mpl))
+- **[api]** API: remove configuration of Entrypoint and Middlewares ([#5119](https://github.com/containous/traefik/pull/5119) by [mpl](https://github.com/mpl))
+- **[api]** Improve API endpoints ([#5080](https://github.com/containous/traefik/pull/5080) by [ldez](https://github.com/ldez))
+- **[api]** Manage status for TCP element in the endpoint overview. ([#5108](https://github.com/containous/traefik/pull/5108) by [ldez](https://github.com/ldez))
+- **[file]** Restrict traefik.toml to static configuration. ([#5090](https://github.com/containous/traefik/pull/5090) by [ldez](https://github.com/ldez))
+- **[k8s,k8s/crd]** Add scheme to IngressRoute. ([#5062](https://github.com/containous/traefik/pull/5062) by [ldez](https://github.com/ldez))
+- **[k8s,k8s/ingress]** Renamed `kubernetes` provider in `kubernetesIngress` provider ([#5068](https://github.com/containous/traefik/pull/5068) by [jbdoumenjou](https://github.com/jbdoumenjou))
+- **[logs]** Improve error on router without service. ([#5126](https://github.com/containous/traefik/pull/5126) by [ldez](https://github.com/ldez))
+- **[metrics]** Add Metrics ([#5111](https://github.com/containous/traefik/pull/5111) by [mmatur](https://github.com/mmatur))
+- **[middleware]** Disable RateLimit temporarily ([#5123](https://github.com/containous/traefik/pull/5123) by [juliens](https://github.com/juliens))
+- **[tls]** TLSOptions: handle conflict: same host name, different TLS options ([#5056](https://github.com/containous/traefik/pull/5056) by [mpl](https://github.com/mpl))
+- **[tls]** Expand Client Auth Type configuration ([#5078](https://github.com/containous/traefik/pull/5078) by [jbdoumenjou](https://github.com/jbdoumenjou))
+- **[tracing]** Add Jaeger collector endpoint ([#5082](https://github.com/containous/traefik/pull/5082) by [rmfitzpatrick](https://github.com/rmfitzpatrick))
+- **[webui]** refactor(webui): use @vue/cli to bootstrap new ui ([#5091](https://github.com/containous/traefik/pull/5091) by [Slashgear](https://github.com/Slashgear))
+- **[webui]** feat(webui/dashboard): init new dashboard ([#5105](https://github.com/containous/traefik/pull/5105) by [Slashgear](https://github.com/Slashgear))
+- Move dynamic config into a dedicated package. ([#5075](https://github.com/containous/traefik/pull/5075) by [ldez](https://github.com/ldez))
+
+**Bug fixes:**
+- **[file]** fix: TLS configuration from directory. ([#5118](https://github.com/containous/traefik/pull/5118) by [ldez](https://github.com/ldez))
+- **[middleware]** Remove X-Forwarded-(Uri, Method, Tls-Client-Cert and Tls-Client-Cert-Info) from untrusted IP ([#5012](https://github.com/containous/traefik/pull/5012) by [stffabi](https://github.com/stffabi))
+- **[middleware]** Properly add response headers for CORS ([#4857](https://github.com/containous/traefik/pull/4857) by [dtomcej](https://github.com/dtomcej))
+
+**Documentation:**
+- **[acme]** Lets encrypt documentation typo ([#5127](https://github.com/containous/traefik/pull/5127) by [juliens](https://github.com/juliens))
+- **[docker,marathon]** Update Dynamic Configuration Reference for both Docker and Marathon ([#5100](https://github.com/containous/traefik/pull/5100) by [jbdoumenjou](https://github.com/jbdoumenjou))
+- **[k8s,k8s/ingress]** Add documentation about Kubernetes Ingress provider ([#5112](https://github.com/containous/traefik/pull/5112) by [mpl](https://github.com/mpl))
+- **[k8s/crd]** user guide: fix a mistake in the deployment definition ([#5096](https://github.com/containous/traefik/pull/5096) by [ldez](https://github.com/ldez))
+- **[middleware]** Fixed a typo in label. ([#5128](https://github.com/containous/traefik/pull/5128) by [jamct](https://github.com/jamct))
+- **[provider]** Improve providers documentation. ([#5050](https://github.com/containous/traefik/pull/5050) by [ldez](https://github.com/ldez))
+- **[tracing]** Improve tracing documentation ([#5102](https://github.com/containous/traefik/pull/5102) by [mmatur](https://github.com/mmatur))
+- Add a basic Traefik install guide ([#5117](https://github.com/containous/traefik/pull/5117) by [jbdoumenjou](https://github.com/jbdoumenjou))
+
+**Misc:**
+- Cherry pick v1.7 into v2.0 ([#5115](https://github.com/containous/traefik/pull/5115) by [jbdoumenjou](https://github.com/jbdoumenjou))
+
 ## [v2.0.0-alpha8](https://github.com/containous/traefik/tree/v2.0.0-alpha8) (2019-07-01)
 [All Commits](https://github.com/containous/traefik/compare/v2.0.0-alpha7...v2.0.0-alpha8)
 

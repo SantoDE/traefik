@@ -34,7 +34,8 @@ type TLS struct {
 	// certificate details.
 	SecretName string `json:"secretName"`
 	// Options is a reference to a TLSOption, that specifies the parameters of the TLS connection.
-	Options *TLSOptionRef `json:"options"`
+	Options      *TLSOptionRef `json:"options"`
+	CertResolver string        `json:"certResolver"`
 }
 
 // TLSOptionRef is a ref to the TLSOption resources.
@@ -47,6 +48,7 @@ type TLSOptionRef struct {
 type Service struct {
 	Name        string       `json:"name"`
 	Port        int32        `json:"port"`
+	Scheme      string       `json:"scheme,omitempty"`
 	HealthCheck *HealthCheck `json:"healthCheck,omitempty"`
 	Strategy    string       `json:"strategy,omitempty"`
 }

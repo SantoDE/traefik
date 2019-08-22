@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/containous/mux"
-	"github.com/containous/traefik/pkg/config"
-	"github.com/containous/traefik/pkg/middlewares"
-	"github.com/containous/traefik/pkg/middlewares/stripprefix"
-	"github.com/containous/traefik/pkg/tracing"
+	"github.com/containous/traefik/v2/pkg/config/dynamic"
+	"github.com/containous/traefik/v2/pkg/middlewares"
+	"github.com/containous/traefik/v2/pkg/middlewares/stripprefix"
+	"github.com/containous/traefik/v2/pkg/tracing"
+	"github.com/gorilla/mux"
 	"github.com/opentracing/opentracing-go/ext"
 )
 
@@ -25,7 +25,7 @@ type stripPrefixRegex struct {
 }
 
 // New builds a new StripPrefixRegex middleware.
-func New(ctx context.Context, next http.Handler, config config.StripPrefixRegex, name string) (http.Handler, error) {
+func New(ctx context.Context, next http.Handler, config dynamic.StripPrefixRegex, name string) (http.Handler, error) {
 	middlewares.GetLogger(ctx, name, typeName).Debug("Creating middleware")
 
 	stripPrefix := stripPrefixRegex{

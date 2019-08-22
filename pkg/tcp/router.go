@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/containous/traefik/pkg/log"
+	"github.com/containous/traefik/v2/pkg/log"
 )
 
 // Router is a TCP router
@@ -90,7 +90,6 @@ func (r *Router) AddRouteHTTPTLS(sniHost string, config *tls.Config) {
 	if r.hostHTTPTLSConfig == nil {
 		r.hostHTTPTLSConfig = map[string]*tls.Config{}
 	}
-	log.Debugf("adding route %s with minversion %d", sniHost, config.MinVersion)
 	r.hostHTTPTLSConfig[sniHost] = config
 }
 
