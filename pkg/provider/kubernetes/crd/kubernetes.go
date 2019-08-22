@@ -729,7 +729,6 @@ func getCertificateBlocks(secret *corev1.Secret, namespace, secretName string) (
 	return cert, key, nil
 }
 
-<<<<<<< HEAD
 func getCABlocks(secret *corev1.Secret, namespace, secretName string) (string, error) {
 	tlsCrtData, tlsCrtExists := secret.Data["tls.ca"]
 	if !tlsCrtExists {
@@ -744,7 +743,8 @@ func getCABlocks(secret *corev1.Secret, namespace, secretName string) (string, e
 	}
 
 	return cert, nil
-=======
+}
+
 func (p *Provider) updateEndpoint(route *v1alpha1.IngressRoute, k8sClient Client) error {
 	serviceInfo := strings.Split(p.PublishedService, "/")
 	if len(serviceInfo) != 2 {
@@ -761,5 +761,4 @@ func (p *Provider) updateEndpoint(route *v1alpha1.IngressRoute, k8sClient Client
 	k8sClient.UpdateIngressrouteEndpoint("somenamespace", "someService", serviceToCopy.Status.LoadBalancer.Ingress[0].IP, serviceToCopy.Status.LoadBalancer.Ingress[0].Hostname)
 
 	return nil
->>>>>>> first try
 }

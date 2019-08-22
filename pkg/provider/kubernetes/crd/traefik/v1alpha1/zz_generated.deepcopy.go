@@ -162,6 +162,11 @@ func (in *IngressRouteSpec) DeepCopyInto(out *IngressRouteSpec) {
 		*out = new(endpoint.DNSEndpoint)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.Endpoint != nil {
+		in, out := &in.Endpoint, &out.Endpoint
+		*out = new(endpoint.DNSEndpoint)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 
