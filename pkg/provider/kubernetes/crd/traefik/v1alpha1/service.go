@@ -43,8 +43,8 @@ type ServiceSpec struct {
 // Mirroring defines a mirroring service, which is composed of a main
 // load-balancer, and a list of mirrors.
 type Mirroring struct {
-	LoadBalancerSpec
-	MaxBodySize *int64
+	LoadBalancerSpec 			`json:"loadbalancerspec,omitempty"`
+	MaxBodySize *int64 			`json:"maxbodysize,omitempty"`
 	Mirrors     []MirrorService `json:"mirrors,omitempty"`
 }
 
@@ -52,8 +52,8 @@ type Mirroring struct {
 
 // MirrorService defines one of the mirrors of a Mirroring service.
 type MirrorService struct {
-	LoadBalancerSpec
-	Percent int `json:"percent,omitempty"`
+	LoadBalancerSpec 	`json:"loadbalancerspec,omitempty"`
+	Percent int 		`json:"percent,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true

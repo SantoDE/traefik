@@ -7,9 +7,11 @@ import (
 )
 
 // IngressRouteSpec is a specification for a IngressRouteSpec resource.
+// +k8s:openapi-gen=true
 type IngressRouteSpec struct {
 	Routes      []Route  `json:"routes"`
 	EntryPoints []string `json:"entryPoints"`
+
 	TLS         *TLS     `json:"tls,omitempty"`
 }
 
@@ -81,7 +83,7 @@ type LoadBalancerSpec struct {
 
 // Service defines an upstream to proxy traffic.
 type Service struct {
-	LoadBalancerSpec
+	LoadBalancerSpec `json:"spec,omitempty"`
 }
 
 // MiddlewareRef is a ref to the Middleware resources.
