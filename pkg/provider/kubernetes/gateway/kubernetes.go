@@ -783,7 +783,6 @@ func (p *Provider) gatewayHTTPRouteToHTTPConf(ctx context.Context, ep string, li
 		if !shouldAttach(gateway, listener, route.Namespace, route.Spec.CommonRouteSpec) {
 			continue
 		}
-
 		hostnames := matchingHostnames(listener, route.Spec.Hostnames)
 		if len(hostnames) == 0 && listener.Hostname != nil && *listener.Hostname != "" && len(route.Spec.Hostnames) > 0 {
 			// TODO update the corresponding route parent status
@@ -805,6 +804,7 @@ func (p *Provider) gatewayHTTPRouteToHTTPConf(ctx context.Context, ep string, li
 		}
 
 		for _, routeRule := range route.Spec.Rules {
+
 			rule, err := extractRule(routeRule, hostRule)
 			if err != nil {
 				// update "ResolvedRefs" status true with "UnsupportedPathOrHeaderType" reason
@@ -866,6 +866,11 @@ func (p *Provider) gatewayHTTPRouteToHTTPConf(ctx context.Context, ep string, li
 			for middlewareName, middleware := range middlewares {
 				conf.HTTP.Middlewares[middlewareName] = middleware
 				router.Middlewares = append(router.Middlewares, middlewareName)
+			}
+
+			err = linkTraefikCMiddleware(routeRule.Filters, route.Namespace, &router)
+			if err != nil {
+				return nil
 			}
 
 			if len(routeRule.BackendRefs) == 0 {
@@ -1815,6 +1820,8 @@ func loadMiddlewares(listener gatev1.Listener, prefix string, filters []gatev1.H
 			if err != nil {
 				return nil, fmt.Errorf("creating RedirectRegex middleware: %w", err)
 			}
+		case gatev1.HTTPRouteFilterExtensionRef:
+			continue
 		default:
 			// As per the spec:
 			// https://gateway-api.sigs.k8s.io/api-types/httproute/#filters-optional
@@ -1829,6 +1836,18 @@ func loadMiddlewares(listener gatev1.Listener, prefix string, filters []gatev1.H
 	}
 
 	return middlewares, nil
+}
+
+func linkTraefikCMiddleware(filters []gatev1.HTTPRouteFilter, ns string, r *dynamic.Router) error {
+	for _, filter := range filters {
+		if filter.Type != gatev1.HTTPRouteFilterExtensionRef {
+			return nil
+		}
+		middlewareName := fmt.Sprintf("%s-%s@kubernetescrd", ns, filter.ExtensionRef.Name)
+		r.Middlewares = append(r.Middlewares, middlewareName)
+	}
+
+	return nil
 }
 
 func createRedirectRegexMiddleware(scheme string, filter *gatev1.HTTPRequestRedirectFilter) (*dynamic.Middleware, error) {
