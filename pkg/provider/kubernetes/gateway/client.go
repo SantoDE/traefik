@@ -53,6 +53,7 @@ type Client interface {
 	UpdateGatewayClassStatus(gatewayClass *gatev1.GatewayClass, condition metav1.Condition) error
 	GetGateways() []*gatev1.Gateway
 	GetHTTPRoutes(namespaces []string) ([]*gatev1.HTTPRoute, error)
+	UpdateHTTPRouteStatus(route *gatev1.HTTPRoute, routeStatus gatev1.HTTPRouteStatus) error
 	GetTCPRoutes(namespaces []string) ([]*gatev1alpha2.TCPRoute, error)
 	GetTLSRoutes(namespaces []string) ([]*gatev1alpha2.TLSRoute, error)
 	GetReferenceGrants(namespace string) ([]*gatev1beta1.ReferenceGrant, error)
@@ -448,6 +449,25 @@ func (c *clientWrapper) UpdateGatewayStatus(gateway *gatev1.Gateway, gatewayStat
 	_, err := c.csGateway.GatewayV1().Gateways(gateway.Namespace).UpdateStatus(ctx, g, metav1.UpdateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to update Gateway %q status: %w", gateway.Name, err)
+	}
+
+	return nil
+}
+
+func (c *clientWrapper) UpdateHTTPRouteStatus(route *gatev1.HTTPRoute, routeStatus gatev1.HTTPRouteStatus) error {
+	if !c.isWatchedNamespace(route.Namespace) {
+		return fmt.Errorf("cannot update Gateway status %s/%s: namespace is not within watched namespaces", route.Namespace, route.Name)
+	}
+
+	r := route.DeepCopy()
+	r.Status = routeStatus
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := c.csGateway.GatewayV1().HTTPRoutes(route.Namespace).UpdateStatus(ctx, r, metav1.UpdateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to update Route %q status: %w", route.Name, err)
 	}
 
 	return nil

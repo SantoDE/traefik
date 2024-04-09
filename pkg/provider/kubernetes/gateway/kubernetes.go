@@ -1045,6 +1045,30 @@ func (p *Provider) gatewayHTTPRouteToHTTPConf(ctx context.Context, ep string, li
 
 			routerKey = provider.Normalize(routerKey)
 			conf.HTTP.Routers[routerKey] = rt
+
+			var rconditions []metav1.Condition
+			rconditions = append(rconditions, metav1.Condition{
+				Type:               string(gatev1.RouteConditionAccepted),
+				Status:             metav1.ConditionTrue,
+				ObservedGeneration: route.Generation,
+				LastTransitionTime: metav1.Now(),
+				Reason:             string(gatev1.RouteReasonAccepted),
+			})
+
+			status := gatev1.RouteParentStatus{
+				ParentRef: gatev1.ParentReference{
+					Namespace: (*gatev1.Namespace)(&gateway.Namespace),
+					Name:      gatev1.ObjectName(gateway.Name),
+					Kind:      (*gatev1.Kind)(&gateway.Kind),
+				},
+				ControllerName: "traefik.io/gateway-controller",
+				Conditions:     rconditions,
+			}
+
+			err = client.UpdateHTTPRouteStatus(route, gatev1.HTTPRouteStatus{RouteStatus: gatev1.RouteStatus{Parents: []gatev1.RouteParentStatus{status}}})
+			if err != nil {
+				log.Ctx(ctx).Err(err).Msg("Failed to update route status")
+			}
 		}
 	}
 
