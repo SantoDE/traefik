@@ -719,7 +719,7 @@ func (p *Provider) makeGatewayStatus(gateway *gatev1.Gateway, listenerStatuses [
 
 func (p *Provider) gatewayAddresses(client Client) ([]gatev1.GatewayStatusAddress, error) {
 	if p.StatusAddress == nil {
-		return nil, nil
+		return []gatev1.GatewayStatusAddress{}, nil
 	}
 
 	if p.StatusAddress.IP != "" {
@@ -736,14 +736,14 @@ func (p *Provider) gatewayAddresses(client Client) ([]gatev1.GatewayStatusAddres
 		}}, nil
 	}
 
-	svcRef := p.StatusAddress.Service
-	if svcRef.Name != "" && svcRef.Namespace != "" {
-		svc, exists, err := client.GetService(svcRef.Namespace, svcRef.Name)
+	publishedSvcRef := p.StatusAddress.Service
+	if publishedSvcRef.Name != "" && publishedSvcRef.Namespace != "" {
+		svc, exists, err := client.GetService(publishedSvcRef.Name, publishedSvcRef.Namespace)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get service: %w", err)
 		}
 		if !exists {
-			return nil, fmt.Errorf("could not find a service with name %s in namespace %s", svcRef.Name, svcRef.Namespace)
+			return nil, fmt.Errorf("could not find a service with name %s in namespace %s", publishedSvcRef.Name, publishedSvcRef.Namespace)
 		}
 
 		var addresses []gatev1.GatewayStatusAddress
@@ -1045,6 +1045,30 @@ func (p *Provider) gatewayHTTPRouteToHTTPConf(ctx context.Context, ep string, li
 
 			routerKey = provider.Normalize(routerKey)
 			conf.HTTP.Routers[routerKey] = rt
+
+			var rconditions []metav1.Condition
+			rconditions = append(rconditions, metav1.Condition{
+				Type:               string(gatev1.RouteConditionAccepted),
+				Status:             metav1.ConditionTrue,
+				ObservedGeneration: route.Generation,
+				LastTransitionTime: metav1.Now(),
+				Reason:             string(gatev1.RouteReasonAccepted),
+			})
+
+			status := gatev1.RouteParentStatus{
+				ParentRef: gatev1.ParentReference{
+					Namespace: (*gatev1.Namespace)(&gateway.Namespace),
+					Name:      gatev1.ObjectName(gateway.Name),
+					Kind:      (*gatev1.Kind)(&gateway.Kind),
+				},
+				ControllerName: "traefik.io/gateway-controller",
+				Conditions:     rconditions,
+			}
+
+			err = client.UpdateHTTPRouteStatus(route, gatev1.HTTPRouteStatus{RouteStatus: gatev1.RouteStatus{Parents: []gatev1.RouteParentStatus{status}}})
+			if err != nil {
+				log.Ctx(ctx).Err(err).Msg("Failed to update route status")
+			}
 		}
 	}
 
