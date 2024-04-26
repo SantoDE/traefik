@@ -252,3 +252,12 @@ func (c clientMock) GetSecret(namespace, name string) (*corev1.Secret, bool, err
 func (c clientMock) WatchAll(namespaces []string, stopCh <-chan struct{}) (<-chan interface{}, error) {
 	return c.watchChan, nil
 }
+
+func (c clientMock) UpdateHTTPRouteStatus(route *gatev1.HTTPRoute, routeStatus gatev1.HTTPRouteStatus) error {
+	for _, r := range c.httpRoutes {
+		if r.Name == route.Name {
+			r.Status = routeStatus
+		}
+	}
+	return nil
+}

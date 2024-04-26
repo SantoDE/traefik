@@ -6976,6 +6976,48 @@ func Test_gatewayAddresses(t *testing.T) {
 	}
 }
 
+func Test_parentStatus(t *testing.T) {
+	testCases := []struct {
+		desc           string
+		paths          []string
+		expectedResult *gatev1.RouteParentStatus
+	}{
+		{
+			desc:  "matches",
+			paths: []string{"httproute/simple.yml"},
+			expectedResult: &gatev1.RouteParentStatus{
+				ParentRef: gatev1.ParentReference{
+					Kind:      kindPtr("Gateway"),
+					Name:      "my-gateway",
+					Namespace: namespacePtr("default"),
+				},
+				ControllerName: "traefik.io/gateway-controller",
+				Conditions: []metav1.Condition{{
+					Type:   string(gatev1.RouteConditionAccepted),
+					Status: metav1.ConditionTrue,
+					Reason: string(gatev1.RouteReasonAccepted),
+				},
+				},
+			},
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
+			client := newClientMock(test.paths...)
+
+			gw := client.gateways[0]
+			rt := client.httpRoutes[0]
+
+			got, err := handleRouteParentUpdate(client, gw, rt)
+			require.NoError(t, err)
+			assert.Equal(t, test.expectedResult, got)
+		})
+	}
+}
+
 func hostnamePtr(hostname gatev1.Hostname) *gatev1.Hostname {
 	return &hostname
 }
